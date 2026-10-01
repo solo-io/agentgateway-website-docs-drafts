@@ -72,6 +72,8 @@ The first three rows are values that a `custom` provider declares in its `format
 
 Because `completions` comes before `responses`, a provider that advertises both is unaffected by the Responses conversion. That conversion applies to a provider that advertises `responses` and not `completions`.
 
+On converted OpenAI-compatible routes, `cache_control` becomes `prompt_cache_breakpoint` only when the selected model accepts explicit prompt cache breakpoints. For example, a `gpt-5.6` or later model receives the breakpoint, while an older `gpt-5.5` model receives the same content without the breakpoint.
+
 ### Converting to the Chat Completions format
 
 The Chat Completions conversion carries extended-thinking history in both directions, so a thinking session on a converted route keeps its prior reasoning from one turn to the next. This behavior matters when your client speaks Messages but the provider that you route to advertises only `completions`, such as a self-hosted inference engine. Self-hosted engines that report reasoning as `reasoning_content` also accept it back on an assistant message, which is what makes the carryover possible. To declare that an upstream speaks `completions`, see [Custom providers]({{< link-hextra path="/integrations/llm/providers/custom/" >}}).
@@ -101,6 +103,8 @@ The Responses conversion covers a common agent subset:
 - Structured output JSON schemas
 - Prompt cache breakpoints
 - Streaming and usage reporting
+
+For Responses, the conversion preserves prompt cache breakpoints on text content in system, user, assistant, and tool-result content blocks. User and tool-result image content keeps prompt cache breakpoints too.
 
 > [!WARNING]
 > The Responses format has no equivalent for `stop_sequences` or `top_k`. Agentgateway accepts both fields and drops them, with no error and no warning to the client. A request that relies on a stop sequence to end generation behaves differently against a provider that advertises only `responses`.
