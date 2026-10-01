@@ -102,6 +102,8 @@ The Responses conversion covers a common agent subset:
 - Prompt cache breakpoints
 - Streaming and usage reporting
 
+For streamed converted replies, latency metrics include time to first token and inter-token latency between content chunks.
+
 > [!WARNING]
 > The Responses format has no equivalent for `stop_sequences` or `top_k`. Agentgateway accepts both fields and drops them, with no error and no warning to the client. A request that relies on a stop sequence to end generation behaves differently against a provider that advertises only `responses`.
 
