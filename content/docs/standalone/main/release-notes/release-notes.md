@@ -104,6 +104,10 @@ Only the built-in HTTP field set is renamed. The `gen_ai.*` and `mcp.*` fields a
 
 For the field rename table and an example, see [Use OpenTelemetry field names]({{< link-hextra path="/documentation/observability/access-logs/view/#preset" >}}).
 
+#### Standalone Helm chart can create a HorizontalPodAutoscaler {#v16-standalone-helm-hpa}
+
+The standalone Helm chart now creates a Kubernetes HorizontalPodAutoscaler when `autoscaling.enabled` is `true`. Use the `autoscaling` values to set the minimum and maximum replica counts, CPU and memory utilization targets, annotations, and scaling behavior. For more information, see [Scale with a HorizontalPodAutoscaler]({{< link-hextra path="/documentation/setup/install/helm/#standalone-helm-hpa" >}}).
+
 ### Security {#v16-features-security}
 
 #### Destination and TLS SNI variables in network authorization {#v16-network-authz-sni}

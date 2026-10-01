@@ -55,7 +55,8 @@ The chart creates the following resources. Each resource is named after the Helm
 | Deployment | `{{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}` | Runs the agentgateway proxy. |
 | ConfigMap | `{{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}-config` | Holds the rendered `config.yaml`, mounted read-only at `/config`. |
 | Service | `{{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}` | Exposes the gateway listener. Type `LoadBalancer` and port `80` to container port `4000` by default. |
-| ServiceAccount | `{{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}` | Identity for the proxy pod. |
+| ServiceAccount | `{{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}` | Identity for the proxy pod. |{{< version exclude-if="1.5.x" >}}
+| HorizontalPodAutoscaler | `{{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}` | Scales the proxy Deployment when `autoscaling.enabled` is `true`. |{{< /version >}}
 
 If you installed with a different release name or namespace, such as with the **Unique name and namespace** tab, adjust the resource names and the `-n` values in the commands throughout this documentation accordingly.
 
@@ -69,6 +70,71 @@ Keep in mind that the Helm chart installation does not include the following fea
 * No database for features such as LLM analytics, LLM logs, API key budgets, and hybrid storage. To add a database, see [Database]({{< link-hextra path="/documentation/setup/database/#helm" >}}).
   
 Also keep in mind that this standalone Kubernetes Deployment via Helm does not include the features of [{{< reuse "agw-docs/snippets/agentgateway.md" >}} for Kubernetes](https://docs.solo.io/agentgateway/kubernetes/latest/), such as a control plane, agentgateway custom resources, or additional services such as rate limiting, external auth, and WAF.
+
+{{< version exclude-if="1.5.x" >}}
+### Scale with a HorizontalPodAutoscaler {#standalone-helm-hpa}
+
+Use the `autoscaling` values to create a Kubernetes HorizontalPodAutoscaler (HPA) for the proxy Deployment. When `autoscaling.enabled` is `true`, the chart omits the Deployment `spec.replicas` field and lets the HPA manage the replica count.
+
+1. Create or edit your `values.yaml` file, and set the autoscaling bounds and resource targets.
+
+   ```yaml
+   autoscaling:
+     enabled: true
+     minReplicas: 2
+     maxReplicas: 5
+     targetCPUUtilizationPercentage: 70
+     targetMemoryUtilizationPercentage: 80
+   podDisruptionBudget:
+     enabled: true
+     minAvailable: 1
+   ```
+
+   | Field | Description |
+   | --- | --- |
+   | `autoscaling.enabled` | Creates the HPA. The default value is `false`. |
+   | `autoscaling.minReplicas` | Sets the minimum HPA replica count. When `podDisruptionBudget.enabled` is also `true`, this value controls whether the chart renders a PodDisruptionBudget. |
+   | `autoscaling.maxReplicas` | Sets the maximum HPA replica count. The default value is `3`. |
+   | `autoscaling.targetCPUUtilizationPercentage` | Adds a CPU utilization metric to the HPA. The default value is `80`. |
+   | `autoscaling.targetMemoryUtilizationPercentage` | Adds a memory utilization metric to the HPA. The default value is `80`. |
+   | `autoscaling.behavior` | Copies a Kubernetes HPA `behavior` block into `spec.behavior`. The default value is `{}`. |
+
+2. Upgrade the release with your values file.
+
+   {{< reuse "agw-docs/standalone/helm-upgrade-command.md" >}}
+
+3. Verify that the chart created the HPA.
+
+   ```sh
+   kubectl get hpa {{< reuse "agw-docs/standalone/helm-standalone-release.md" >}} \
+     -n {{< reuse "agw-docs/snippets/namespace.md" >}} -o yaml
+   ```
+
+   Example output:
+
+   ```yaml
+   spec:
+     maxReplicas: 5
+     metrics:
+     - resource:
+         name: memory
+         target:
+           averageUtilization: 80
+           type: Utilization
+       type: Resource
+     - resource:
+         name: cpu
+         target:
+           averageUtilization: 70
+           type: Utilization
+       type: Resource
+     minReplicas: 2
+     scaleTargetRef:
+       apiVersion: apps/v1
+       kind: Deployment
+       name: {{< reuse "agw-docs/standalone/helm-standalone-release.md" >}}
+   ```
+{{< /version >}}
 
 ## Verify the installation
 

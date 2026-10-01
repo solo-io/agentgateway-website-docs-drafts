@@ -2,7 +2,8 @@
 
 | Value | Use |
 | --- | --- |
-| `replicaCount` | Run more than one proxy pod. |
+| `replicaCount` | Run more than one proxy pod. |{{< version exclude-if="1.5.x" >}}
+| `autoscaling` | Create a HorizontalPodAutoscaler for the proxy Deployment. For an example, see [Scale with a HorizontalPodAutoscaler](#standalone-helm-hpa). |{{< /version >}}
 | `monitoring.enabled` | Create a PodMonitor and expose the metrics port for Prometheus Operator. |
 | `extraEnv`, `extraVolumes`, `extraVolumeMounts`, `extraContainers` | Add environment variables, mount secrets, or run sidecars. |
 | `imagePullSecrets` | Pull the proxy image from a private registry. |
