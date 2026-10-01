@@ -78,6 +78,19 @@ The Chat Completions conversion carries extended-thinking history in both direct
 
 On the way out, an assistant `thinking` block in the message history is sent as `reasoning_content`. A turn made of thinking alone is still sent.
 
+Current-turn thinking controls are converted to the OpenAI `reasoning_effort` field. Disabled thinking omits `reasoning_effort`, even when `output_config.effort` is present, so the provider's default applies. Otherwise, `output_config.effort` takes precedence over `thinking.budget_tokens`.
+
+| Messages input | OpenAI `reasoning_effort` |
+|----------------|---------------------------|
+| Disabled `thinking`, with or without `output_config.effort` | Omitted |
+| `output_config.effort` without `thinking`, with adaptive `thinking`, or with enabled `thinking` | The same effort value |
+| Adaptive `thinking` without `output_config.effort` | `high` |
+| Enabled `thinking` with `budget_tokens` from 0 through 2047 and no `output_config.effort` | `low` |
+| Enabled `thinking` with `budget_tokens` from 2048 through 4095 and no `output_config.effort` | `medium` |
+| Enabled `thinking` with `budget_tokens` from 4096 through 8191 and no `output_config.effort` | `high` |
+| Enabled `thinking` with `budget_tokens` from 8192 through 16383 and no `output_config.effort` | `xhigh` |
+| Enabled `thinking` with `budget_tokens` of 16384 or more and no `output_config.effort` | `max` |
+
 On the way back, the `reasoning_content` in a buffered response becomes a `thinking` block ahead of the text block. In a stream, a thinking content block opens with `thinking_delta` events, adds a `signature_delta` when the engine sends a signature, and stops before the text or tool-use block that follows. Reasoning that the engine withholds arrives with an empty text and a signature that carries it, so the block is sent on the signature alone, in both the buffered and the streamed form.
 
 Three cases do not round-trip.
@@ -88,7 +101,7 @@ Three cases do not round-trip.
 | A `redacted_thinking` block | Dropped, because it holds nothing that an OpenAI-compatible engine can replay. |
 | A provider that advertises `responses` and not `completions` | The thinking history is dropped from the converted request, with no error and no warning, so the model loses its prior reasoning. See [Converting to the Responses format](#converting-to-the-responses-format). |
 
-Certain models, such as `gpt-5.3`, reject a Chat Completions request that sets both a reasoning effort and tools. In the Chat Completions conversion, a request with tools to one of these models is sent with `reasoning_effort: "none"`, and any thinking that the client asked for through `thinking` or `output_config.effort` is dropped. Every other model receives the reasoning effort that the client asked for, if any.
+Certain models, such as `gpt-5.3`, reject a Chat Completions request that sets both a reasoning effort and tools. In the Chat Completions conversion, a request with tools to one of these models is sent with `reasoning_effort: "none"`, and any thinking that the client asked for through `thinking` or `output_config.effort` is dropped. Every other model receives the selected reasoning effort, if any.
 
 ### Converting to the Responses format
 
@@ -101,6 +114,8 @@ The Responses conversion covers a common agent subset:
 - Structured output JSON schemas
 - Prompt cache breakpoints
 - Streaming and usage reporting
+
+The same current-turn thinking rules apply when a Messages request is converted to Responses. The selected effort value is sent as `reasoning.effort`.
 
 > [!WARNING]
 > The Responses format has no equivalent for `stop_sequences` or `top_k`. Agentgateway accepts both fields and drops them, with no error and no warning to the client. A request that relies on a stop sequence to end generation behaves differently against a provider that advertises only `responses`.
