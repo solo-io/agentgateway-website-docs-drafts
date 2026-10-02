@@ -34,7 +34,7 @@ Agentgateway configuration has a few top level sections:
 To update configuration, you can write to the configuration file or use the agentgateway UI.
 
 * **Write to the file**: Most changes that you make to the file are automatically picked up by agentgateway, with the exception of the top-level `config` section.
-* **UI**: The agentgateway UI overwrites the contents of the configuration file. Note that any comments that you add to the file are wiped out! You can open the agentgateway UI on port 15000.
+* **UI**: In file storage mode, the agentgateway UI writes saved changes back to the configuration file. The UI preserves comments and formatting where possible and validates changes before writing. You can open the agentgateway UI on port 15000.
 
 ## Run your configuration {#run}
 
