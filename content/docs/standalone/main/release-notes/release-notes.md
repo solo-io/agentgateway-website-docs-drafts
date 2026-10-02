@@ -184,3 +184,11 @@ The `AGENTGATEWAY_LEGACY_LLM_USAGE_TOKEN_SEMANTICS` environment variable is remo
 <!-- ref: https://github.com/agentgateway/agentgateway/pull/3182 -->
 
 You can now opt in to OpenTelemetry field names for stdout access logs. Set `frontendPolicies.accessLog.preset: otel`. For more information, see [Use OpenTelemetry field names]({{< link-hextra path="/documentation/observability/access-logs/view/#preset" >}}).
+
+## 🐛 Fixes {#v16-fixes}
+
+<!-- ref: https://github.com/agentgateway/agentgateway/pull/3703 -->
+
+**MCP**
+
+- Access-log CEL expressions can now read dynamic metadata that ExtMCP request-phase guardrails return through `mcpGuardrails`, including on resumed stateful MCP sessions. For more information, see [Log MCP guardrail metadata]({{< link-hextra path="/documentation/observability/access-logs/view/#mcp-guardrails" >}}).
