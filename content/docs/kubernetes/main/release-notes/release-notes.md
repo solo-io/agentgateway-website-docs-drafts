@@ -68,9 +68,13 @@ Bedrock Runtime chat requests now use native OpenAI and Anthropic endpoints wher
 
 **Traffic management**
 
+- Buffer policies now use the same policy hierarchy as other traffic policies, so override inheritance controls which buffer settings win. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4491 -->
 - Direct responses now keep the reason from the component that produced them. MCP backend external authorization denials return the authorization service's status and response instead of `500`. An inference routing `ImmediateResponse` in the response phase is now returned to the client instead of being ignored. Requests and responses that exceed the buffer limit now return `413` and `502` responses with a short body instead of an empty body. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4250 -->
+- External processors preserve trailers-only gRPC response status, so upstream errors such as `PermissionDenied` reach clients instead of a generic stream-closed error. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4381 -->
 - gRPC clients now receive `UNAVAILABLE` for missing services, invalid backend types, and missing backends, so retryable backend-routing errors no longer fall back to `UNKNOWN`. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4226 -->
+- HBONE connection pooling no longer deadlocks when concurrent requests wait on the same workload tunnel. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4436 -->
 - HTTP/2 connection handoff avoids a deadlock when a waiting request is canceled as the pool delivers a connection. Previously, the deadlock could make the proxy hang. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4323 --> <!-- ref: https://github.com/agentgateway/agentgateway/issues/4317 -->
+- Requests with malformed `Host` headers return HTTP 400 instead of failing as an internal processing error. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4439 -->
 - Requests with more than one `Host` header line now return HTTP `400`. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4401 -->
 - When an HTTP/2 server advertises a smaller stream limit than expected, the pool opens another connection instead of queuing the next request behind the full connection. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4273 -->
 - When the downstream client disconnects, external processing now cancels its in-flight callout requests and stops reading a streamed upstream response body. Previously, a request that waited in an endpoint picker queue, such as in llm-d, kept its queue slot until the callout timed out, and a streamed model response kept generating until `max_tokens`. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4174 --> <!-- ref: https://github.com/agentgateway/agentgateway/pull/4285 -->
@@ -82,6 +86,7 @@ Bedrock Runtime chat requests now use native OpenAI and Anthropic endpoints wher
 - Bedrock Invoke streaming responses contribute input, output, cache-write, and cache-read token counts from `amazon-bedrock-invocationMetrics` to LLM usage metrics and cost calculations. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4297 -->
 - Chat Completions responses that omit the top-level `model` field now keep the request model during parsing and format conversion. Streamed chunks that omit `model` are accepted, so usage from the final chunk is still reported. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4181 --> <!-- ref: https://github.com/agentgateway/agentgateway/pull/4265 -->
 - Chat Completions clients now receive an OpenAI-style stream error when an Anthropic stream sends an error event after partial content. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4270 -->
+- Copilot requests now include the integration ID header required by providers such as Gemini. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4499 -->
 - GitHub Copilot embeddings requests with a string `input` no longer fail with `400`. Chat routes now reject Copilot embedding models instead of sending them to `/chat/completions`. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4240 -->
 - Messages `document` blocks sent to Responses backends now become file or text input parts in user messages and tool results instead of being dropped. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4127 -->
 - Messages replay to Bedrock drops assistant `thinking` blocks whose `signature` is empty, so Bedrock does not receive invalid reasoning content. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4115 -->
@@ -89,7 +94,18 @@ Bedrock Runtime chat requests now use native OpenAI and Anthropic endpoints wher
 - Gemini and Vertex AI Chat Completions requests use `thinkingLevel` for Gemini 4 and Gemma 4 models, so `reasoning_effort` no longer returns Google thinking-budget errors. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4151 -->
 - Mistral reasoning responses that send `message.content` or `delta.content` as `thinking` and `text` parts pass through Chat Completions unchanged. Converted Messages and Responses replies keep only the text parts. Previously, non-streaming responses failed with `502`. <!-- ref: https://github.com/agentgateway/agentgateway/pull/3729 -->
 - Streaming LLM response transformations can read request-side CEL fields such as `llm.provider`, `llm.requestModel`, and `llm.streaming`. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4241 -->
+- The model catalog now includes service-tier pricing data and removes local overrides that are available from the source catalog. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4457 -->
+- Vertex AI requests in Anthropic Messages and token-count formats now drop `anthropic-beta` values that Vertex does not accept, and `AGENTGATEWAY_VERTEX_ANTHROPIC_BETA_HEADERS` replaces the allow list. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4416 -->
 - Webhook guardrail masks that keep the same message count and roles now update text in place, so the proxy preserves tool calls, images, IDs, names, and metadata such as `cache_control`, while masks that add, drop, or change message roles still rebuild the request. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4341 -->
+
+**Operations**
+
+- The generated API reference now describes request log fields and budget status fields, including filters, analytics totals, and budget usage windows. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4444 -->
+
+**MCP**
+
+- Legacy Streamable HTTP `GET /mcp` event streams now resume stateful MCP sessions from the encoded session ID, so any replica with the same session key can serve the stream. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4437 -->
+- MCP authentication with a configured `clientId` now advertises the gateway registration endpoint for every provider value, including Auth0 and providers without an adapter. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4477 -->
 
 <!-- Held for the 1.8 release cut, not in the triage keep list. Restore or delete then:
 - Prompt-cache markers are preserved for GPT model names that use only a major version, such as `gpt-6-luna`. (ref: https://github.com/agentgateway/agentgateway/pull/4249)
