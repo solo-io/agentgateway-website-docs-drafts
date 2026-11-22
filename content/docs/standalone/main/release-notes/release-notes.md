@@ -35,6 +35,10 @@ A model that sets `passthrough` now always passes requests through, even on a kn
 - **Ultrafast service-tier pricing**: OpenAI and Amazon Bedrock responses that report the `ultrafast` service tier are now priced with matching model catalog tiers and exposed to CEL as `llm.serviceTier`. Add `serviceTier: "ultrafast"` to catalog tiers to set separate rates for this tier. For more information, see [Service tiers]({{< link-hextra path="/documentation/llm/cost-controls/costs/#service-tiers" >}}). <!-- ref: https://github.com/agentgateway/agentgateway/pull/4259 -->
 - **Virtual model targets can point to other virtual models**: Weighted, conditional, and callout virtual model targets can now route through another virtual model before they resolve to a concrete model. `/v1/models` now includes target-derived metadata for failover virtual models. For more information, see [Virtual models]({{< link-hextra path="/documentation/llm/virtual-models/" >}}). <!-- ref: https://github.com/agentgateway/agentgateway/pull/4216 --> <!-- ref: https://github.com/agentgateway/agentgateway/pull/4313 -->
 
+### Bedrock Runtime uses native endpoints by default {#v18-bedrock-runtime-uses-native-endpoints-by-default}
+
+Bedrock Runtime chat requests now use native OpenAI and Anthropic endpoints where possible instead of sending all chat requests through Converse. Grant IAM permissions for the native Bedrock APIs that your models use, or set `AGENTGATEWAY_BEDROCK_RUNTIME_CONVERSE=true` on the proxy to keep the previous all-Converse Runtime behavior. For more information, see [Bedrock Mantle]({{< link-hextra path="/integrations/llm/providers/bedrock/#bedrock-mantle" >}}).
+
 ### Observability {#v18-observability}
 
 - **OTLP access log records include a body and timestamp**: OTLP access log records now include a timestamp and a body that joins the request method, path, and response status, such as `POST /v1/messages 200`. Previously, exported records had an empty body and no timestamp. <!-- ref: https://github.com/agentgateway/agentgateway/pull/4312 -->

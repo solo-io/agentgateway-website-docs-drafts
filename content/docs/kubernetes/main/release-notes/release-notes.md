@@ -40,6 +40,10 @@ Model transformations now rewrite the model ID in the request path of Bedrock, V
 - **Ultrafast service-tier pricing**: OpenAI and Amazon Bedrock responses that report the `ultrafast` service tier are now priced with matching model catalog tiers and exposed to CEL as `llm.serviceTier`. Add `serviceTier: "ultrafast"` to catalog tiers to set separate rates for this tier. For more information, see [Service tiers]({{< link-hextra path="/documentation/llm/cost-controls/costs/#service-tiers" >}}). <!-- ref: https://github.com/agentgateway/agentgateway/pull/4259 -->
 - **Virtual model targets can point to other virtual models**: Weighted, conditional, and callout virtual model targets can now route through another virtual model before they resolve to a concrete model. For more information, see [Virtual models]({{< link-hextra path="/documentation/llm/models/virtual/" >}}). <!-- ref: https://github.com/agentgateway/agentgateway/pull/4216 -->
 
+### Bedrock Runtime uses native endpoints by default {#v18-bedrock-runtime-uses-native-endpoints-by-default}
+
+Bedrock Runtime chat requests now use native OpenAI and Anthropic endpoints where possible instead of sending all chat requests through Converse. Grant IAM permissions for the native Bedrock APIs that your models use, or set `AGENTGATEWAY_BEDROCK_RUNTIME_CONVERSE=true` on the proxy to keep the previous all-Converse Runtime behavior. For more information, see [Bedrock Mantle]({{< link-hextra path="/integrations/llm/providers/bedrock/#bedrock-mantle" >}}).
+
 ### Observability {#v18-observability}
 
 - **Active upstream request and connection metrics**: The data plane now emits `agentgateway_requests_active` and `agentgateway_upstream_connections_active` gauges with a `backend` label. Use them to monitor active backend requests and open upstream connections. For more information, see [Data plane metrics]({{< link-hextra path="/documentation/observability/metrics/dataplane/" >}}). <!-- ref: https://github.com/agentgateway/agentgateway/pull/4187 -->
